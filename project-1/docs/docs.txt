@@ -1,0 +1,152 @@
+set up
+========
+1.create-react-app
+ and install @apollo/client graphql with below command
+ npm i @apollo/client graphql
+
+2.Initialize ApolloClient
+
+let first import the symbols from the @apollo/client in index.js
+
+import {Apolloclient,InMemoryCache,ApolloProvider,useQuery,gql} from "@apollo/client";
+
+initialize ApolloClient,passing its constructor a configuration object with uri and cache fields
+
+const client = new ApolloClient({
+  uri: 'https://48p1r2roz4.sse.codesandbox.io',
+  cache: new InMemoryCache()
+});
+
+uri specifies the URL fro GraphQL server
+cache is instance of ImMemoryCache,which Apollo Client uses to cache query results after fetching them.
+
+client is ready to start fetching data.Now before we start using apollo client with react lets first try sending a query with a plai  Javascript.
+
+In same index.js file call client.query() with the query string
+
+client.query({
+  query:gql`
+     query GetRates{
+        rates(currency:"USD"){
+           currency
+        }
+    }
+  `
+}).then(data=>console.log(data));
+
+Run this code,open your console and inspect the data object.you should see a data property with rates attached,along with some other properties like loading and networkStatus.Nice!
+
+3.Connect your client to React
+==============================
+
+connect Apollo Client to react with the ApolloProvider component.Similar to React's Context.Provide,ApolloProvider wraps your React app and placed Apollo Client on the context,which enables you to accedd ot from anywhere in your component tree.
+
+import React from 'react';
+import { render } from 'react-dom';
+import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  useQuery,
+  gql
+} from "@apollo/client";
+
+const client = new ApolloClient({
+  uri: 'https://48p1r2roz4.sse.codesandbox.io',
+  cache: new InMemoryCache()
+});
+
+function App() {
+  return (
+    <div>
+      <h2>My first Apollo app 🚀</h2>
+    </div>
+  );
+}
+
+render(
+
+  <ApolloProvider client={client}>
+    <App />
+  </ApolloProvider>,
+  document.getElementById('root'),
+);
+
+
+4. Fetch data with useQuery
+===========================
+After your ApolloProvider is hooked up,you can start requesting data with useQuery.
+useQuery is a React hook that shares GraphQL data with your UI
+
+still in index.js let's first define the query we want to execute by wrapping in the gql teplate literal
+
+const EXCHANGE_RATES = gql`
+  query GetExchangeRates {
+    rates(currency: "USD") {
+      currency
+      rate
+    }
+  }
+`;
+
+now lets create ExchangeRates Component that executes our GetExchangeRates query with the useQuery
+
+function ExchangeRates(){
+  const{loading,error,data}=useQuery(EXCHANGE_RATES)
+  if(loading) return <p>Loading..</p>
+  if(error) return <p>Error :(</p>
+  return data.rates.map(({currency,rate})=>{
+       return(<div key={currency}>
+               <p>
+                 {currency}:{rate}
+               </p>
+               </div>)
+  })
+}
+
+whenever this component renders,the useQuery hook automatically executes our query and returns a result object containing loading,error, and data properties
+
+*Apollo Client tracks query's error and loading state for you,which are reflectes in the loading and error properties
+
+*when the result of your query comes back it's attached to the data property
+
+Finally we add ExchangeRates to our existing component tree
+
+function App(){
+  return(
+     <div>
+       <h2>My First Apollo App 🚀🚀</h2>
+       <ExchangeRates/>
+      </div>
+  );
+}
+
+when your app reloads.you should brefily see a loading indicator,follwes by a list of exchange rates!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
